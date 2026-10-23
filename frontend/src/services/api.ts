@@ -175,4 +175,84 @@ export const fetchEmergencyBeds = async (hospitalId?: string): Promise<BedStatus
   return res.data;
 };
 
+export interface User {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  age?: number;
+  gender?: string;
+  role: 'PATIENT' | 'DOCTOR' | 'RECEPTIONIST' | 'ADMIN';
+  hospital_id?: string;
+  created_at: string;
+}
+
+export interface AuthResponse {
+  access_token: string;
+  token_type: string;
+  user: User;
+}
+
+const TOKEN_KEY = 'op_tracker_token';
+const USER_KEY = 'op_tracker_user';
+
+export const getStoredAuth = (): { token: string | null; user: User | null } => {
+  try {
+    const token = localStorage.getItem(TOKEN_KEY);
+    const userStr = localStorage.getItem(USER_KEY);
+    let user: User | null = null;
+    if (userStr) {
+      user = JSON.parse(userStr);
+    }
+    if (token) {
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    }
+    return { token, user };
+  } catch {
+    return { token: null, user: null };
+  }
+};
+
+export const setStoredAuth = (token: string, user: User) => {
+  try {
+    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } catch (err) {
+    console.error('Failed to save auth to storage:', err);
+  }
+};
+
+export const clearStoredAuth = () => {
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    delete api.defaults.headers.common['Authorization'];
+  } catch (err) {
+    console.error('Failed to clear auth from storage:', err);
+  }
+};
+
+export const loginUser = async (phone: string, password: string): Promise<AuthResponse> => {
+  const res = await api.post('/auth/login', { phone, password });
+  setStoredAuth(res.data.access_token, res.data.user);
+  return res.data;
+};
+
+export const registerUser = async (userData: {
+  name: string;
+  phone: string;
+  password: string;
+  email?: string;
+  age?: number;
+  gender?: string;
+  role?: 'PATIENT' | 'DOCTOR' | 'RECEPTIONIST' | 'ADMIN';
+  hospital_id?: string;
+}): Promise<AuthResponse> => {
+  const res = await api.post('/auth/register', userData);
+  setStoredAuth(res.data.access_token, res.data.user);
+  return res.data;
+};
+
 export default api;
+

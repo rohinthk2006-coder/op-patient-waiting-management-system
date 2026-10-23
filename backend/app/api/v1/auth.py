@@ -33,6 +33,29 @@ _mock_users: Dict[str, Dict[str, Any]] = {
         "hospital_id": "hosp-apollo-01",
         "hashed_password": get_password_hash("recep123"),
         "created_at": "2026-10-23T08:00:00Z"
+    },
+    "9840112233": {
+        "_id": "user-patient-01",
+        "id": "user-patient-01",
+        "name": "Rajesh Kumar",
+        "phone": "9840112233",
+        "email": "rajesh.k@gmail.com",
+        "role": "PATIENT",
+        "age": 38,
+        "gender": "Male",
+        "hashed_password": get_password_hash("patient123"),
+        "created_at": "2026-10-23T08:00:00Z"
+    },
+    "9876543299": {
+        "_id": "user-admin-01",
+        "id": "user-admin-01",
+        "name": "Super Admin - Apollo Health",
+        "phone": "9876543299",
+        "email": "admin@apollo.com",
+        "role": "ADMIN",
+        "hospital_id": "hosp-apollo-01",
+        "hashed_password": get_password_hash("admin123"),
+        "created_at": "2026-10-23T08:00:00Z"
     }
 }
 

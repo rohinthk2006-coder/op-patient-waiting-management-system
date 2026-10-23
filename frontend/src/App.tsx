@@ -1,24 +1,32 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Navbar } from './components/Navbar';
+import { IntroPage } from './components/IntroPage';
+import { LoginPage } from './components/LoginPage';
 import { PatientPortal } from './components/PatientPortal';
 import { WaitingHallTVMode } from './components/WaitingHallTVMode';
 import { DoctorConsole } from './components/DoctorConsole';
 import { EmergencyBedsDashboard } from './components/EmergencyBedsDashboard';
 import { QueueAnalytics } from './components/QueueAnalytics';
 import { NotificationsModal } from './components/NotificationsModal';
-import type { Hospital, Booking, QueueSession } from './services/api';
-import { fetchHospitals, fetchQueueSession } from './services/api';
+import { LoginModal } from './components/LoginModal';
+import type { Hospital, Booking, QueueSession, User } from './services/api';
+import { fetchHospitals, fetchQueueSession, getStoredAuth, clearStoredAuth } from './services/api';
 import { playChime } from './utils/audioChime';
 import api from './services/api';
 
 export function App() {
-  const [currentTab, setCurrentTab] = useState<'patient' | 'tv' | 'doctor' | 'beds' | 'analytics'>('patient');
+  const [currentTab, setCurrentTab] = useState<'intro' | 'login' | 'patient' | 'tv' | 'doctor' | 'beds' | 'analytics'>('intro');
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [activeBooking, setActiveBooking] = useState<Booking | null>(null);
   const [session, setSession] = useState<QueueSession | null>(null);
   const [wsConnected, setWsConnected] = useState<boolean>(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState<boolean>(false);
   const [notificationCount, setNotificationCount] = useState<number>(0);
+
+  // Auth states
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
+  const [loginModalRole, setLoginModalRole] = useState<'PATIENT' | 'STAFF'>('PATIENT');
 
   const loadData = useCallback(async () => {
     try {
@@ -36,6 +44,12 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    // Check local storage for persistent user session
+    const { user } = getStoredAuth();
+    if (user) {
+      setCurrentUser(user);
+    }
+
     loadData();
 
     // Setup Real-Time WebSocket connection
@@ -88,17 +102,64 @@ export function App() {
     };
   }, [loadData]);
 
+  const handleOpenLogin = (role: 'PATIENT' | 'STAFF' = 'PATIENT') => {
+    setLoginModalRole(role);
+    setCurrentTab('login');
+  };
+
+  const handleLoginSuccess = (user: User) => {
+    setCurrentUser(user);
+    setIsLoginModalOpen(false);
+    // Role-based smart redirect
+    if (user.role === 'DOCTOR') {
+      setCurrentTab('doctor');
+    } else if (user.role === 'ADMIN') {
+      setCurrentTab('analytics');
+    } else {
+      setCurrentTab('patient');
+    }
+  };
+
+  const handleLogout = () => {
+    clearStoredAuth();
+    setCurrentUser(null);
+    setCurrentTab('intro');
+  };
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans">
-      <Navbar
-        currentTab={currentTab}
-        setCurrentTab={setCurrentTab}
-        wsConnected={wsConnected}
-        onOpenNotifications={() => setIsNotificationsOpen(true)}
-        notificationCount={notificationCount}
-      />
+    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
+      {/* Hide navbar on full-screen LoginPage to maximize focus on the hospital background and login card */}
+      {currentTab !== 'login' && (
+        <Navbar
+          currentTab={currentTab}
+          setCurrentTab={setCurrentTab}
+          wsConnected={wsConnected}
+          onOpenNotifications={() => setIsNotificationsOpen(true)}
+          notificationCount={notificationCount}
+          currentUser={currentUser}
+          onOpenLogin={handleOpenLogin}
+          onLogout={handleLogout}
+        />
+      )}
 
       <main className="flex-1">
+        {currentTab === 'intro' && (
+          <IntroPage
+            onNavigateToLogin={handleOpenLogin}
+            onNavigateToTab={(tab) => setCurrentTab(tab)}
+            currentUser={currentUser}
+            hospitals={hospitals}
+          />
+        )}
+
+        {currentTab === 'login' && (
+          <LoginPage
+            onLoginSuccess={handleLoginSuccess}
+            onBackToHome={() => setCurrentTab('intro')}
+            initialRole={loginModalRole}
+          />
+        )}
+
         {currentTab === 'patient' && (
           <PatientPortal
             hospitals={hospitals}
@@ -125,16 +186,27 @@ export function App() {
         )}
       </main>
 
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
+        defaultRole={loginModalRole}
+      />
+
       <NotificationsModal
         isOpen={isNotificationsOpen}
         onClose={() => setIsNotificationsOpen(false)}
       />
 
-      <footer className="border-t border-slate-900 bg-slate-950 py-4 px-6 text-center text-xs text-slate-500">
-        Hospital OP Live Tracker • Anti-Duplicate Queue Engine • Auto Token Expiry • AI Wait-Time Forecast
-      </footer>
+      {currentTab !== 'login' && (
+        <footer className="border-t border-slate-200 bg-white py-3 px-6 text-center text-xs text-slate-500">
+          Hospital OP Live Tracker • Anti-Duplicate Queue Engine • Auto Token Expiry • AI Wait-Time Forecast
+        </footer>
+      )}
     </div>
   );
 }
 
 export default App;
+
+

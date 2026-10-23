@@ -28,89 +28,89 @@ const HOURLY_DATA = [
 
 export const QueueAnalytics: React.FC<QueueAnalyticsProps> = ({ session }) => {
   const pieData = [
-    { name: 'Waiting', value: Math.max(session?.total_waiting || 3, 1), color: '#3b82f6' },
+    { name: 'Waiting', value: Math.max(session?.total_waiting || 3, 1), color: '#0284c7' },
     { name: 'Completed', value: Math.max(session?.total_completed || 8, 1), color: '#10b981' },
     { name: 'Expired', value: Math.max(session?.total_expired || 2, 1), color: '#ef4444' },
   ];
 
   return (
-    <div className="max-w-7xl mx-auto py-6 px-4">
-      <div className="flex items-center gap-3 pb-6 border-b border-slate-800 mb-6">
-        <div className="w-10 h-10 rounded-xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
+    <div className="max-w-6xl mx-auto py-5 px-3 sm:px-6 font-sans">
+      <div className="flex items-center gap-2.5 pb-4 border-b border-slate-200 mb-5">
+        <div className="w-9 h-9 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-700">
           <TrendingUp className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-white">Queue Throughput & Velocity Analytics</h2>
-          <p className="text-xs text-slate-400">Hourly patient arrival rates, completion efficiency, and auto-expiry metrics</p>
+          <h2 className="text-base font-bold text-slate-900">Queue Throughput & Velocity Analytics</h2>
+          <p className="text-xs text-slate-500">Hourly patient arrival rates, completion efficiency, and auto-expiry metrics</p>
         </div>
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
-            <Users className="w-6 h-6" />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+        <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 shrink-0">
+            <Users className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-2xl font-black text-white">{session?.total_booked || 14}</div>
-            <div className="text-xs text-slate-400">Total Tokens Generated</div>
+            <div className="text-xl font-bold text-slate-900">{session?.total_booked || 14}</div>
+            <div className="text-xs text-slate-500">Total Tokens Generated</div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
-            <CheckCircle className="w-6 h-6" />
+        <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shrink-0">
+            <CheckCircle className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-2xl font-black text-emerald-400">{session?.total_completed || 9}</div>
-            <div className="text-xs text-slate-400">Completed Visits</div>
+            <div className="text-xl font-bold text-emerald-700">{session?.total_completed || 9}</div>
+            <div className="text-xs text-slate-500">Completed Consultations</div>
           </div>
         </div>
 
-        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400">
-            <AlertOctagon className="w-6 h-6" />
+        <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-700 shrink-0">
+            <AlertOctagon className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-2xl font-black text-rose-400">{session?.total_expired || 2}</div>
-            <div className="text-xs text-slate-400">Auto-Expired (No-Show)</div>
+            <div className="text-xl font-bold text-rose-700">{session?.total_expired || 2}</div>
+            <div className="text-xs text-slate-500">Auto-Expired (No-Show)</div>
           </div>
         </div>
       </div>
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Hourly Turnout Bar Chart */}
-        <div className="lg:col-span-8 p-6 rounded-2xl bg-slate-900 border border-slate-800">
-          <h3 className="text-sm font-bold text-white mb-4">Hourly Outpatient Flow (Tokens vs Completed)</h3>
-          <div className="h-64">
+        <div className="lg:col-span-8 p-4 rounded-xl bg-white border border-slate-200 shadow-xs">
+          <h3 className="text-xs font-bold text-slate-800 mb-3">Hourly Outpatient Flow (Tokens vs Completed)</h3>
+          <div className="h-60">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={HOURLY_DATA}>
-                <XAxis dataKey="time" stroke="#64748b" fontSize={12} />
-                <YAxis stroke="#64748b" fontSize={12} />
+                <XAxis dataKey="time" stroke="#94a3b8" fontSize={11} />
+                <YAxis stroke="#94a3b8" fontSize={11} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px' }}
+                  contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px', color: '#0f172a', fontSize: '12px' }}
                 />
-                <Bar dataKey="booked" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Booked" />
-                <Bar dataKey="completed" fill="#10b981" radius={[4, 4, 0, 0]} name="Completed" />
-                <Bar dataKey="expired" fill="#ef4444" radius={[4, 4, 0, 0]} name="Expired" />
+                <Bar dataKey="booked" fill="#0284c7" radius={[3, 3, 0, 0]} name="Booked" />
+                <Bar dataKey="completed" fill="#10b981" radius={[3, 3, 0, 0]} name="Completed" />
+                <Bar dataKey="expired" fill="#ef4444" radius={[3, 3, 0, 0]} name="Expired" />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Status Distribution Pie Chart */}
-        <div className="lg:col-span-4 p-6 rounded-2xl bg-slate-900 border border-slate-800">
-          <h3 className="text-sm font-bold text-white mb-4">Token Distribution</h3>
-          <div className="h-64 flex items-center justify-center">
+        <div className="lg:col-span-4 p-4 rounded-xl bg-white border border-slate-200 shadow-xs">
+          <h3 className="text-xs font-bold text-slate-800 mb-3">Token Distribution</h3>
+          <div className="h-60 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={pieData}
                   cx="50%"
                   cy="50%"
-                  innerRadius={50}
-                  outerRadius={80}
+                  innerRadius={45}
+                  outerRadius={70}
                   paddingAngle={5}
                   dataKey="value"
                 >
@@ -119,9 +119,9 @@ export const QueueAnalytics: React.FC<QueueAnalyticsProps> = ({ session }) => {
                   ))}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px' }}
+                  contentStyle={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0', borderRadius: '8px', color: '#0f172a', fontSize: '12px' }}
                 />
-                <Legend verticalAlign="bottom" height={36} iconType="circle" />
+                <Legend verticalAlign="bottom" height={32} iconType="circle" wrapperStyle={{ fontSize: '11px' }} />
               </PieChart>
             </ResponsiveContainer>
           </div>

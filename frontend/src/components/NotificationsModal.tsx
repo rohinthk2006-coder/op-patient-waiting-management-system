@@ -32,26 +32,26 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({ isOpen, 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+    <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+      <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-md shadow-xl overflow-hidden flex flex-col max-h-[80vh]">
         {/* Header */}
-        <div className="p-5 border-b border-slate-800 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
-              <Bell className="w-4 h-4" />
+        <div className="p-3.5 border-b border-slate-200 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">
+              <Bell className="w-3.5 h-3.5" />
             </div>
-            <h3 className="text-lg font-bold text-white">Live Dispatched Notifications</h3>
+            <h3 className="text-sm font-bold text-slate-900">Live Dispatched Notifications</h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* List */}
-        <div className="p-4 overflow-y-auto flex-1 space-y-3">
+        <div className="p-3.5 overflow-y-auto flex-1 space-y-2.5">
           {notifications.length > 0 ? (
             notifications.map((n) => {
               const isExpired = n.category === 'TOKEN_EXPIRED';
@@ -60,41 +60,41 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({ isOpen, 
               return (
                 <div
                   key={n.id}
-                  className={`p-3.5 rounded-2xl border text-xs ${
+                  className={`p-3 rounded-xl border text-xs ${
                     isExpired
-                      ? 'bg-rose-950/20 border-rose-500/30 text-rose-200'
+                      ? 'bg-rose-50/60 border-rose-200 text-rose-900'
                       : isCheckin
-                      ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-200'
-                      : 'bg-slate-800/60 border-slate-700/60 text-slate-300'
+                      ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900'
+                      : 'bg-slate-50 border-slate-200 text-slate-800'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-1.5 font-bold">
                       {isExpired ? (
-                        <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                        <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
                       ) : isCheckin ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                       ) : (
-                        <Calendar className="w-3.5 h-3.5 text-blue-400" />
+                        <Calendar className="w-3.5 h-3.5 text-teal-600" />
                       )}
                       <span>{n.title}</span>
                     </div>
-                    <span className="text-[10px] text-slate-400">
+                    <span className="text-[10px] text-slate-500">
                       {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                     </span>
                   </div>
-                  <p className="text-slate-300 leading-relaxed">{n.message}</p>
-                  <div className="mt-2 flex items-center justify-between text-[11px] text-slate-500">
+                  <p className="text-slate-600 leading-normal">{n.message}</p>
+                  <div className="mt-1.5 flex items-center justify-between text-[10px] text-slate-500">
                     <span>To: {n.recipient_phone}</span>
-                    <span className="px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700 text-slate-400">
-                      SMS / Push Delivered
+                    <span className="px-1.5 py-0.2 rounded bg-white border border-slate-200 text-slate-600">
+                      SMS Delivered
                     </span>
                   </div>
                 </div>
               );
             })
           ) : (
-            <div className="text-center py-10 text-slate-500 text-xs">
+            <div className="text-center py-8 text-slate-400 text-xs">
               No notifications dispatched yet. Book a token or trigger auto-expiry to see live SMS alerts.
             </div>
           )}
