@@ -34,7 +34,7 @@ export const QueueAnalytics: React.FC<QueueAnalyticsProps> = ({ session }) => {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto py-5 px-3 sm:px-6 font-sans">
+    <div className="w-full py-5 px-4 sm:px-6 lg:px-8 font-sans">
       <div className="flex items-center gap-2.5 pb-4 border-b border-slate-200 mb-5">
         <div className="w-9 h-9 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-700">
           <TrendingUp className="w-5 h-5" />
@@ -47,7 +47,7 @@ export const QueueAnalytics: React.FC<QueueAnalyticsProps> = ({ session }) => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
-        <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+        <div className="p-3.5 rounded-xl bg-white/92 backdrop-blur-md border border-white/60 shadow-md flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 shrink-0">
             <Users className="w-5 h-5" />
           </div>
@@ -57,7 +57,7 @@ export const QueueAnalytics: React.FC<QueueAnalyticsProps> = ({ session }) => {
           </div>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+        <div className="p-3.5 rounded-xl bg-white/92 backdrop-blur-md border border-white/60 shadow-md flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 shrink-0">
             <CheckCircle className="w-5 h-5" />
           </div>
@@ -67,7 +67,7 @@ export const QueueAnalytics: React.FC<QueueAnalyticsProps> = ({ session }) => {
           </div>
         </div>
 
-        <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-xs flex items-center gap-3">
+        <div className="p-3.5 rounded-xl bg-white/92 backdrop-blur-md border border-white/60 shadow-md flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-700 shrink-0">
             <AlertOctagon className="w-5 h-5" />
           </div>
@@ -81,7 +81,7 @@ export const QueueAnalytics: React.FC<QueueAnalyticsProps> = ({ session }) => {
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Hourly Turnout Bar Chart */}
-        <div className="lg:col-span-8 p-4 rounded-xl bg-white border border-slate-200 shadow-xs">
+        <div className="lg:col-span-8 p-4 rounded-xl bg-white/92 backdrop-blur-md border border-white/60 shadow-md">
           <h3 className="text-xs font-bold text-slate-800 mb-3">Hourly Outpatient Flow (Tokens vs Completed)</h3>
           <div className="h-60">
             <ResponsiveContainer width="100%" height="100%">
@@ -100,7 +100,7 @@ export const QueueAnalytics: React.FC<QueueAnalyticsProps> = ({ session }) => {
         </div>
 
         {/* Status Distribution Pie Chart */}
-        <div className="lg:col-span-4 p-4 rounded-xl bg-white border border-slate-200 shadow-xs">
+        <div className="lg:col-span-4 p-4 rounded-xl bg-white/92 backdrop-blur-md border border-white/60 shadow-md">
           <h3 className="text-xs font-bold text-slate-800 mb-3">Token Distribution</h3>
           <div className="h-60 flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">

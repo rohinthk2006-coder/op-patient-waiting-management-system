@@ -84,7 +84,7 @@ export const DoctorConsole: React.FC<DoctorConsoleProps> = ({ session, onRefresh
   );
 
   return (
-    <div className="max-w-6xl mx-auto py-5 px-3 sm:px-6 font-sans">
+    <div className="w-full py-5 px-4 sm:px-6 lg:px-8 font-sans">
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-3 pb-4 border-b border-slate-200">
         <div className="flex items-center gap-2.5">
@@ -199,7 +199,7 @@ export const DoctorConsole: React.FC<DoctorConsoleProps> = ({ session, onRefresh
       {/* Main Grid: Active Consultation & Queue Control */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 my-5">
         {/* Active Patient Card */}
-        <div className="lg:col-span-7 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs flex flex-col justify-between">
+        <div className="lg:col-span-7 bg-white/92 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-white/60 shadow-md flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-3">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
@@ -219,7 +219,7 @@ export const DoctorConsole: React.FC<DoctorConsoleProps> = ({ session, onRefresh
             {currentPatient ? (
               <div className="py-2">
                 <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-2xl font-black text-emerald-800 shrink-0">
+                  <div className="w-14 h-14 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-2xl font-black text-emerald-800 shrink-0 tabular-nums">
                     #{currentPatient.token_number}
                   </div>
                   <div>
@@ -310,7 +310,7 @@ export const DoctorConsole: React.FC<DoctorConsoleProps> = ({ session, onRefresh
         </div>
 
         {/* Live Patient Waiting Queue List */}
-        <div className="lg:col-span-5 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs">
+        <div className="lg:col-span-5 bg-white/92 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-white/60 shadow-md">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
               <span>Patient Queue List</span>

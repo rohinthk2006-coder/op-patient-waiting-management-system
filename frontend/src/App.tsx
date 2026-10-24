@@ -128,7 +128,17 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
+    <div className="relative min-h-screen text-slate-900 flex flex-col font-sans w-full overflow-x-hidden">
+      {/* Full Hospital Environment Background with High Transparency / Clarity */}
+      <div
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat pointer-events-none -z-10"
+        style={{
+          backgroundImage: `url('/hospital_bg.jpg')`,
+        }}
+      />
+      {/* Subtle translucent veil ensuring text contrast while letting the hospital background shine through */}
+      <div className="fixed inset-0 bg-slate-950/20 backdrop-blur-[1.5px] pointer-events-none -z-10" />
+
       {/* Hide navbar on full-screen LoginPage to maximize focus on the hospital background and login card */}
       {currentTab !== 'login' && (
         <Navbar
@@ -143,13 +153,15 @@ export function App() {
         />
       )}
 
-      <main className="flex-1">
+      <main className="flex-1 w-full">
         {currentTab === 'intro' && (
           <IntroPage
             onNavigateToLogin={handleOpenLogin}
             onNavigateToTab={(tab) => setCurrentTab(tab)}
             currentUser={currentUser}
             hospitals={hospitals}
+            session={session}
+            wsConnected={wsConnected}
           />
         )}
 
@@ -167,6 +179,10 @@ export function App() {
             onBookingSuccess={loadData}
             activeBooking={activeBooking}
             setActiveBooking={setActiveBooking}
+            session={session}
+            onOpenNotifications={() => setIsNotificationsOpen(true)}
+            notificationCount={notificationCount}
+            onRefreshData={loadData}
           />
         )}
 
@@ -200,7 +216,7 @@ export function App() {
       />
 
       {currentTab !== 'login' && (
-        <footer className="border-t border-slate-200 bg-white py-3 px-6 text-center text-xs text-slate-500">
+        <footer className="border-t border-white/40 bg-white/80 backdrop-blur-md py-3 px-4 sm:px-6 lg:px-8 text-center text-xs text-slate-700 font-medium w-full mt-auto shadow-xs">
           Hospital OP Live Tracker • Anti-Duplicate Queue Engine • Auto Token Expiry • AI Wait-Time Forecast
         </footer>
       )}

@@ -112,10 +112,11 @@ async def test_patient_otp_login_flow():
         assert res_send.status_code == 200
         otp_data = res_send.json()
         assert otp_data["success"] is True
-        assert otp_data["otp_preview"] == "123456"
+        assert len(otp_data["otp_preview"]) == 6
+        assert otp_data["otp_preview"].isdigit()
 
         # 2. Verify OTP and login
-        res_verify = await ac.post("/api/v1/auth/otp/verify", json={"phone": phone, "otp": "123456"})
+        res_verify = await ac.post("/api/v1/auth/otp/verify", json={"phone": phone, "otp": otp_data["otp_preview"]})
         assert res_verify.status_code == 200
         auth_data = res_verify.json()
         assert "access_token" in auth_data

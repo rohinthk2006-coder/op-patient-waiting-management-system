@@ -187,6 +187,21 @@ async def update_doctor_delay(update: DoctorDelayUpdate):
                 booking_ref=b["booking_ref"]
             )
 
+    # Broadcast notification to the notification feed so all patients receive the delay update
+    broadcast_msg = (
+        f"⚠️ Dr. R. Anand reported a +{update.delay_minutes}-min delay ({update.delay_reason}). "
+        f"OP consultation times and vacate departure deadlines have been shifted by +{update.delay_minutes}m."
+        if update.delay_minutes > 0
+        else "✅ Dr. R. Anand OPD schedule is running on time (0 min delay)."
+    )
+    await notification_service.send_notification(
+        recipient_phone="All Waiting Patients",
+        title=f"⚠️ Doctor Delay Notice (+{update.delay_minutes}m)" if update.delay_minutes > 0 else "✅ Doctor On-Schedule Notice",
+        message=broadcast_msg,
+        category="DOCTOR_DELAY_UPDATE",
+        booking_ref="SCH-OPD-DELAY"
+    )
+
     # Broadcast real-time WebSocket event to all waiting halls and patient portals
     await ws_manager.broadcast_all({
         "event": "DOCTOR_DELAY_UPDATED",

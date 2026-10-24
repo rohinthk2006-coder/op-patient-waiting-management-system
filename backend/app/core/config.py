@@ -26,8 +26,21 @@ class Settings(BaseSettings):
     EXPIRY_WORKER_INTERVAL_SECONDS: int = 30
     RESTART_RECOVERY_ON_BOOT: bool = True
 
+    # SMS Gateway Configuration
+    SMS_PROVIDER: str = "fast2sms"
+    FAST2SMS_API_KEY: str = ""
+    FAST2SMS_OTP_ID: str = ""
+    TWILIO_ACCOUNT_SID: str = ""
+    TWILIO_AUTH_TOKEN: str = ""
+    TWILIO_PHONE_NUMBER: str = ""
+
+    # Rate limiting & OTP Expiry
+    OTP_EXPIRY_MINUTES: int = 5
+    OTP_MAX_ATTEMPTS: int = 5
+    OTP_RATE_LIMIT_SECONDS: int = 60
+
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env", "../.env"),
         env_file_encoding="utf-8",
         case_sensitive=True,
         extra="ignore",

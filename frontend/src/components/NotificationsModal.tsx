@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Bell, X, CheckCircle2, AlertCircle, Calendar } from 'lucide-react';
+import { Bell, X, CheckCircle2, AlertCircle, Calendar, Clock } from 'lucide-react';
 import api from '../services/api';
 
 interface NotificationItem {
@@ -56,12 +56,15 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({ isOpen, 
             notifications.map((n) => {
               const isExpired = n.category === 'TOKEN_EXPIRED';
               const isCheckin = n.category === 'CHECKIN_CONFIRMATION';
+              const isDelay = n.category === 'DOCTOR_DELAY_UPDATE' || n.title.includes('Delay');
 
               return (
                 <div
                   key={n.id}
-                  className={`p-3 rounded-xl border text-xs ${
-                    isExpired
+                  className={`p-3 rounded-xl border text-xs transition-all ${
+                    isDelay
+                      ? 'bg-amber-50/80 border-amber-300 text-amber-950 shadow-xs'
+                      : isExpired
                       ? 'bg-rose-50/60 border-rose-200 text-rose-900'
                       : isCheckin
                       ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900'
@@ -70,7 +73,9 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({ isOpen, 
                 >
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-1.5 font-bold">
-                      {isExpired ? (
+                      {isDelay ? (
+                        <Clock className="w-3.5 h-3.5 text-amber-600" />
+                      ) : isExpired ? (
                         <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
                       ) : isCheckin ? (
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
@@ -79,7 +84,7 @@ export const NotificationsModal: React.FC<NotificationsModalProps> = ({ isOpen, 
                       )}
                       <span>{n.title}</span>
                     </div>
-                    <span className="text-[10px] text-slate-500">
+                    <span className="text-[10px] text-slate-500 font-mono">
                       {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                     </span>
                   </div>

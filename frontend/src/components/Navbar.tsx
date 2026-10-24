@@ -62,8 +62,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="border-b border-slate-200 bg-white/95 backdrop-blur-md sticky top-0 z-40 px-3 sm:px-6 py-2 shadow-xs transition-colors">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2.5">
+    <header className="border-b border-white/40 bg-white/85 backdrop-blur-md sticky top-0 z-40 px-4 sm:px-6 lg:px-8 py-2.5 shadow-sm transition-colors w-full">
+      <div className="w-full flex flex-col md:flex-row items-center justify-between gap-2.5">
         {/* Logo and Brand */}
         <div
           onClick={() => setCurrentTab('intro')}

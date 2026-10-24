@@ -81,3 +81,45 @@ async def test_notifications_dispatch():
         notifs = res.json()
         assert len(notifs) >= 1
         assert "recipient_phone" in notifs[0]
+
+
+@pytest.mark.asyncio
+async def test_doctor_delay_broadcast_and_notification():
+    """
+    TDD Test: Verify doctor delay is stored and dispatched to queue session.
+    """
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        schedule_id = "sch-card-morning"
+        delay_payload = {
+            "schedule_id": schedule_id,
+            "delay_minutes": 25,
+            "delay_reason": "Emergency angioplasty review in OT"
+        }
+        res = await ac.post("/api/v1/queue/doctor-delay", json=delay_payload)
+        assert res.status_code == 200
+        data = res.json()
+        assert data["status"] == "SUCCESS"
+
+        # Verify session reflects the 25-minute delay
+        session_res = await ac.get(f"/api/v1/queue/session/{schedule_id}")
+        assert session_res.status_code == 200
+        session_data = session_res.json()
+        assert session_data["doctor_delay_min"] == 25
+        assert "Emergency angioplasty" in session_data["delay_reason"]
+
+
+@pytest.mark.asyncio
+async def test_emergency_beds_availability():
+    """
+    TDD Test: Verify emergency beds can be fetched and reflect categories.
+    """
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        res = await ac.get("/api/v1/beds")
+        assert res.status_code == 200
+        beds = res.json()
+        assert len(beds) > 0
+        categories = [b["category"] for b in beds]
+        assert "ICU" in categories
+        for b in beds:
+            assert b["available_beds"] == b["total_beds"] - b["occupied_beds"]
+

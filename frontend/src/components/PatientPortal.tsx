@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { Hospital, Booking, TrafficEstimateResponse } from '../services/api';
+import type { Hospital, Booking, TrafficEstimateResponse, QueueSession } from '../services/api';
 import {
   bookToken,
   bookWalkin,
@@ -22,12 +22,17 @@ import {
   Search,
   CheckCircle2,
 } from 'lucide-react';
+import { HospitalLiveLocationMap } from './HospitalLiveLocationMap';
 
 interface PatientPortalProps {
   hospitals: Hospital[];
   onBookingSuccess: () => void;
   activeBooking: Booking | null;
   setActiveBooking: (b: Booking | null) => void;
+  session?: QueueSession | null;
+  onOpenNotifications?: () => void;
+  notificationCount?: number;
+  onRefreshData?: () => void;
 }
 
 const TRICHY_AREAS = [
@@ -47,11 +52,28 @@ const TRICHY_AREAS = [
   { name: 'Ariyamangalam', lat: 10.8015, lng: 78.735 },
 ];
 
+export const HOSPITAL_REAL_IMAGES: Record<string, string> = {
+  'hosp-apollo-01': 'https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&w=400&q=80',
+  'hosp-trichy-gh-01': 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=400&q=80',
+  'hosp-kauvery-cantonment-02': 'https://images.unsplash.com/photo-1586773860418-d37222d8fce3?auto=format&fit=crop&w=400&q=80',
+  'hosp-kauvery-heartcity-03': 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=400&q=80',
+  'hosp-srm-samayapuram-04': 'https://images.unsplash.com/photo-1512678080530-7760d81faba6?auto=format&fit=crop&w=400&q=80',
+  'hosp-csi-mission-05': 'https://images.unsplash.com/photo-1538108149393-fbbd81895907?auto=format&fit=crop&w=400&q=80',
+  'hosp-frontline-06': 'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=400&q=80',
+  'hosp-maruti-07': 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=400&q=80',
+  'hosp-athena-08': 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=400&q=80',
+  'hosp-rathna-09': 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&w=400&q=80',
+};
+
 export const PatientPortal: React.FC<PatientPortalProps> = ({
   hospitals,
   onBookingSuccess,
   activeBooking,
   setActiveBooking,
+  session,
+  onOpenNotifications,
+  notificationCount = 0,
+  onRefreshData,
 }) => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedHospitalId, setSelectedHospitalId] = useState<string>(
@@ -277,7 +299,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
   );
 
   return (
-    <div className="max-w-6xl mx-auto py-5 px-3 sm:px-6 font-sans">
+    <div className="w-full py-4 px-4 sm:px-6 lg:px-8 font-sans">
       {/* DOCTOR DELAY LIVE ALERT BANNER */}
       {doctorDelayInfo && doctorDelayInfo.delay_minutes > 0 && (
         <div className="mb-5 p-3.5 rounded-2xl bg-amber-50 border border-amber-300 shadow-xs flex items-center justify-between gap-3 animate-fadeIn">
@@ -309,7 +331,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
 
       {/* ACTIVE TOKEN CARD (if patient has an active booking) */}
       {activeBooking && (
-        <div className="mb-6 p-4 rounded-2xl bg-white border border-teal-200 shadow-xs relative overflow-hidden">
+        <div className="mb-6 p-4 rounded-2xl bg-white/92 backdrop-blur-md border border-white/60 shadow-md relative overflow-hidden">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-xl bg-teal-50 border border-teal-200 flex flex-col items-center justify-center text-teal-800 shrink-0">
@@ -413,7 +435,7 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
       {/* Main Grid: Trichy Hospitals Catalog + Booking with Live Location */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Left Column: Trichy Hospitals List */}
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
             <div>
               <h2 className="text-base font-bold text-slate-900 flex items-center gap-1.5">
@@ -447,27 +469,59 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
                 onClick={() => setSelectedHospitalId(hosp.id)}
                 className={`p-4 rounded-xl border transition cursor-pointer ${
                   selectedHospitalId === hosp.id
-                    ? 'bg-teal-50/40 border-teal-500 shadow-xs ring-1 ring-teal-500/30'
-                    : 'bg-white border-slate-200 hover:border-slate-300'
+                    ? 'bg-teal-50/75 border-teal-500 shadow-sm ring-1 ring-teal-500/30 backdrop-blur-md'
+                    : 'bg-white/88 backdrop-blur-md border-white/60 hover:bg-white/95 hover:border-slate-300 shadow-xs'
                 }`}
               >
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <h3 className="text-sm font-bold text-slate-900">{hosp.name}</h3>
-                      {selectedHospitalId === hosp.id && (
-                        <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />
-                      )}
+                <div className="flex items-start gap-3.5 mb-2.5">
+                  {/* Real Hospital Picture Icon Box */}
+                  <div
+                    className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 border transition-all ${
+                      selectedHospitalId === hosp.id
+                        ? 'ring-2 ring-teal-500 border-teal-500 shadow-md scale-[1.02]'
+                        : 'border-slate-200/90 shadow-xs'
+                    }`}
+                  >
+                    <img
+                      src={HOSPITAL_REAL_IMAGES[hosp.id] || HOSPITAL_REAL_IMAGES['hosp-apollo-01']}
+                      alt={hosp.name}
+                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                      loading="lazy"
+                    />
+                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-950/85 via-slate-950/40 to-transparent px-1 py-0.5">
+                      <span className="text-[9px] font-bold text-white uppercase tracking-wider block truncate">
+                        {hosp.area || 'Trichy'}
+                      </span>
                     </div>
-                    <p className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                      <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                      {hosp.address}, {hosp.city}
-                      {hosp.area ? ` • (${hosp.area})` : ''}
-                    </p>
                   </div>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-700 border border-slate-200 shrink-0">
-                    Emerg: {hosp.emergency_contact}
-                  </span>
+
+                  {/* Hospital Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-1.5">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <h3 className="text-sm font-bold text-slate-900 truncate">{hosp.name}</h3>
+                        {selectedHospitalId === hosp.id && (
+                          <CheckCircle2 className="w-4 h-4 text-teal-600 shrink-0" />
+                        )}
+                      </div>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100/90 text-slate-700 border border-slate-200 shrink-0">
+                        Emerg: {hosp.emergency_contact}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5 truncate">
+                      <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                      <span>{hosp.address}, {hosp.city}</span>
+                    </p>
+                    <div className="flex items-center gap-2 mt-1.5 text-[10px] text-slate-600">
+                      <span className="px-1.5 py-0.2 rounded bg-teal-50 text-teal-800 font-semibold border border-teal-200">
+                        {hosp.departments.length} Specialties
+                      </span>
+                      <span>•</span>
+                      <span className="text-emerald-700 font-medium">
+                        Avg Wait: ~{hosp.departments[0]?.current_avg_wait_min || 15}m
+                      </span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Departments Chips */}
@@ -506,9 +560,9 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
         </div>
 
         {/* Right Column: Live Location, Traffic Calculation & OP Token Booking */}
-        <div className="lg:col-span-5 flex flex-col gap-4">
+        <div className="lg:col-span-6 flex flex-col gap-4">
           {/* STEP 1: LIVE LOCATION & TRAFFIC ESTIMATOR */}
-          <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+          <div className="p-4 rounded-2xl bg-white/90 backdrop-blur-md border border-white/60 shadow-md">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">
@@ -584,65 +638,37 @@ export const PatientPortal: React.FC<PatientPortalProps> = ({
               </div>
             </div>
 
-            {/* Real-Time Calculated Route & Departure Card */}
-            {trafficData && (
-              <div className="mt-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
-                <div className="grid grid-cols-3 gap-2 text-center pb-2 border-b border-slate-200">
-                  <div>
-                    <span className="text-[10px] text-slate-500 uppercase font-semibold">
-                      Distance
-                    </span>
-                    <div className="text-sm font-bold text-slate-900">
-                      {trafficData.distance_km} km
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-slate-500 uppercase font-semibold">
-                      Live Traffic
-                    </span>
-                    <div
-                      className={`text-xs font-bold px-1.5 py-0.5 rounded mt-0.5 inline-block ${
-                        trafficData.traffic_level === 'SMOOTH'
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : trafficData.traffic_level === 'MODERATE'
-                          ? 'bg-amber-100 text-amber-800'
-                          : 'bg-rose-100 text-rose-800'
-                      }`}
-                    >
-                      {trafficData.traffic_level} (+{trafficData.traffic_delay_min}m)
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-[10px] text-slate-500 uppercase font-semibold">
-                      Travel Time
-                    </span>
-                    <div className="text-sm font-bold text-teal-800">
-                      ~{trafficData.estimated_travel_min} mins
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-2 text-[11px] text-slate-700 flex flex-col gap-1">
-                  <div className="flex items-center gap-1.5 text-teal-900 font-semibold">
-                    <Clock className="w-3.5 h-3.5 text-teal-600 shrink-0" />
-                    <span>
-                      Recommended Departure:{' '}
-                      <strong className="text-slate-900">
-                        {trafficData.recommended_departure_time} AM
-                      </strong>
-                    </span>
-                  </div>
-                  <div className="text-[10px] text-slate-500 flex items-center gap-1">
-                    <Navigation className="w-3 h-3 text-slate-400 shrink-0" />
-                    <span>{trafficData.route_summary}</span>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* STEP 1.1: INTERACTIVE ALL HOSPITALS MAP & OP VACATE TIMING COMPARISON */}
+            <div className="mt-3.5">
+              <HospitalLiveLocationMap
+                hospitals={hospitals}
+                selectedHospitalId={selectedHospitalId}
+                onSelectHospital={(id) => setSelectedHospitalId(id)}
+                patientCoords={patientCoords}
+                patientLocality={patientLocality}
+                travelMode={travelMode}
+                trafficData={trafficData}
+                targetOpTime={
+                  activeBooking?.estimated_consultation_time ||
+                  activeBooking?.reporting_deadline ||
+                  '10:00 AM'
+                }
+                doctorName="Dr. R. Anand"
+                opdRoom={selectedHospital?.departments?.find((d) => d.id === selectedDeptId)?.room_number || 'OPD Room 102'}
+                onDetectGps={handleDetectLiveLocation}
+                detectingGps={detectingGps}
+                session={session}
+                activeBooking={activeBooking}
+                doctorDelayInfo={doctorDelayInfo}
+                onOpenNotifications={onOpenNotifications}
+                notificationCount={notificationCount}
+                onRefreshSession={onRefreshData}
+              />
+            </div>
           </div>
 
           {/* STEP 2: PATIENT OP BOOKING FORM WITH AADHAAR */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-xs">
+          <div className="p-4 sm:p-5 rounded-2xl bg-white/90 backdrop-blur-md border border-white/60 shadow-md">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-lg bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700">

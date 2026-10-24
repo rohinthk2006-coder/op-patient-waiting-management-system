@@ -24,7 +24,7 @@ export const EmergencyBedsDashboard: React.FC = () => {
   }, []);
 
   return (
-    <div className="max-w-6xl mx-auto py-5 px-3 sm:px-6 font-sans">
+    <div className="w-full py-5 px-4 sm:px-6 lg:px-8 font-sans">
       {/* Header */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-3 pb-4 border-b border-slate-200">
         <div className="flex items-center gap-2.5">
@@ -39,7 +39,7 @@ export const EmergencyBedsDashboard: React.FC = () => {
 
         <button
           onClick={loadBeds}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium shadow-xs transition"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/90 backdrop-blur-md border border-white/60 hover:bg-white text-slate-700 text-xs font-medium shadow-xs transition"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-teal-600' : ''}`} />
           Refresh Beds
@@ -55,12 +55,12 @@ export const EmergencyBedsDashboard: React.FC = () => {
           return (
             <div
               key={bed.id}
-              className={`p-4 rounded-xl border transition shadow-xs ${
+              className={`p-4 rounded-xl border transition shadow-md ${
                 isCritical
-                  ? 'bg-rose-50/40 border-rose-300'
+                  ? 'bg-rose-50/85 backdrop-blur-md border-rose-300'
                   : isLow
-                  ? 'bg-amber-50/40 border-amber-300'
-                  : 'bg-white border-slate-200'
+                  ? 'bg-amber-50/85 backdrop-blur-md border-amber-300'
+                  : 'bg-white/92 backdrop-blur-md border-white/60'
               }`}
             >
               {/* Card Header */}
@@ -97,11 +97,11 @@ export const EmergencyBedsDashboard: React.FC = () => {
               {/* Numbers Display */}
               <div className="flex items-end justify-between py-1 mb-2.5">
                 <div>
-                  <span className="text-2xl font-bold text-slate-900">{bed.available_beds}</span>
-                  <span className="text-xs text-slate-500 ml-1 font-medium">Beds Free</span>
+                  <span className="text-3xl font-extrabold text-slate-900 tabular-nums">{bed.available_beds}</span>
+                  <span className="text-xs text-slate-500 ml-1.5 font-medium">Beds Free</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs font-semibold text-slate-700">
+                  <span className="text-xs font-semibold text-slate-700 tabular-nums">
                     {bed.occupied_beds} / {bed.total_beds}
                   </span>
                   <div className="text-[10px] text-slate-400">Occupied</div>

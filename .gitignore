@@ -8,8 +8,11 @@ __pycache__/
 
 # Environment variables
 .env
+.env.*
 .env.local
 .env.*.local
+backend/.env
+
 
 # Build outputs
 frontend/dist/

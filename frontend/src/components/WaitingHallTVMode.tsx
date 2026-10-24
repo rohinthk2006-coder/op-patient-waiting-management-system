@@ -10,7 +10,7 @@ interface WaitingHallTVModeProps {
 
 export const WaitingHallTVMode: React.FC<WaitingHallTVModeProps> = ({ session }) => {
   return (
-    <div className="min-h-[80vh] flex flex-col justify-between py-5 px-3 sm:px-6 max-w-6xl mx-auto font-sans">
+    <div className="min-h-[80vh] flex flex-col justify-between py-5 px-4 sm:px-6 lg:px-8 w-full font-sans">
       {/* Top Banner */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-3 pb-4 border-b border-slate-200">
         <div>
@@ -48,14 +48,14 @@ export const WaitingHallTVMode: React.FC<WaitingHallTVModeProps> = ({ session })
       {/* Main Big Display Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 my-5 items-center">
         {/* Giant Active Serving Token */}
-        <div className="lg:col-span-8 bg-white p-6 sm:p-8 rounded-2xl border-2 border-emerald-300 shadow-xs relative overflow-hidden text-center">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 font-bold uppercase tracking-wider text-xs mb-2">
-            <BellRing className="w-3.5 h-3.5 text-emerald-600 animate-bounce" />
-            Currently Serving
+        <div className="lg:col-span-8 bg-white/92 backdrop-blur-md p-6 sm:p-10 rounded-3xl border-2 border-emerald-400/80 tv-signage-active relative overflow-hidden text-center transition-all duration-300 shadow-xl">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 font-bold uppercase tracking-wider text-xs mb-3 shadow-xs">
+            <BellRing className="w-4 h-4 text-emerald-600 animate-bounce" />
+            <span>Currently Serving Token</span>
           </div>
 
-          <div className="py-4">
-            <span className="text-6xl sm:text-8xl font-black text-slate-900 tracking-tight">
+          <div className="py-6">
+            <span className="text-7xl sm:text-9xl font-extrabold text-slate-900 tracking-tight tabular-nums select-all">
               {session?.current_serving_token ? `#${session.current_serving_token}` : 'CALLING'}
             </span>
           </div>
@@ -71,7 +71,7 @@ export const WaitingHallTVMode: React.FC<WaitingHallTVModeProps> = ({ session })
         {/* Up Next & Session Metrics */}
         <div className="lg:col-span-4 flex flex-col gap-4">
           {/* Next in Queue */}
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+          <div className="bg-white/92 backdrop-blur-md p-4 rounded-xl border border-white/60 shadow-md">
             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 flex items-center justify-between">
               <span>Next Patients Up</span>
               <ArrowRight className="w-3.5 h-3.5 text-teal-600" />

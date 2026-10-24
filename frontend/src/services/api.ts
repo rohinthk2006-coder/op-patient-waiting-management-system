@@ -334,13 +334,25 @@ export const clearStoredAuth = () => {
   }
 };
 
-export const loginUser = async (phone: string, password: string): Promise<AuthResponse> => {
-  const res = await api.post('/auth/login', { phone, password });
+export const loginUser = async (username: string, password: string): Promise<AuthResponse> => {
+  const res = await api.post('/auth/login', {
+    username,
+    phone: username,
+    email: username,
+    password,
+  });
   setStoredAuth(res.data.access_token, res.data.user);
   return res.data;
 };
 
-export const sendLoginOtp = async (phone: string): Promise<{ success: boolean; message: string; otp_preview: string }> => {
+export const sendLoginOtp = async (phone: string): Promise<{
+  success: boolean;
+  message: string;
+  real_sms_sent?: boolean;
+  otp_preview?: string;
+  fast2sms_code?: number;
+  expires_in_seconds?: number;
+}> => {
   const res = await api.post('/auth/otp/send', { phone });
   return res.data;
 };
