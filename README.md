@@ -10,11 +10,27 @@
 
 ## 🚀 Key Features
 
-1. **Patient Portal & Hospital Comparison:**
-   - Real-time comparison of hospital outpatient loads and average department waiting times before traveling.
-   - Atomic OP token booking with zero duplicate token guarantee under high concurrency.
+1. **Patient Portal, Trichy Hospital Network & Aadhaar Booking:**
+   - Real-time catalog of all major multi-specialty hospitals in **Tiruchirappalli (Trichy)** (MGMGH GH Trichy, Kauvery Cantonment & Heartcity, Apollo Speciality, SRM Medical College, CSI Mission, Frontline, Maruti, etc.).
+   - Atomic OP token booking with 12-digit **Aadhaar Card Number** verification and privacy masking.
    - 1-tap **"I Am At Hospital (Check In)"** button to confirm arrival and disarm auto-expiry.
    - Reporting deadline & 10-minute grace period indicator.
+
+2. **Patient Mobile OTP Authentication:**
+   - Passwordless 1-time SMS OTP login gateway (`/auth/otp/send` and `/auth/otp/verify`).
+   - 60-second resend countdown with 1-tap development autofill (`123456`).
+   - Auto-provisions patient accounts on first verification.
+
+3. **Live Location & Real-Time Traffic Travel Calculation:**
+   - Detects live GPS location (`navigator.geolocation`) or quick-selects Trichy localities (Thillai Nagar, Cantonment, Srirangam, K.K. Nagar, etc.).
+   - Computes distance via Haversine algorithm with urban road detour factor.
+   - Real-time traffic assessment across Bike 🛵, Car 🚗, Auto 🛺, and Bus 🚌 with peak rush hour delay estimation.
+   - Calculates recommended departure time to reach before the OP reporting deadline.
+
+4. **Doctor OPD Delay Broadcast & Patient Auto-Extension:**
+   - Doctor Console controls to broadcast delays (`+10m`, `+15m`, `+20m`, `+30m`, `+45m Emergency Case`) with procedural reasons.
+   - Real-time WebSocket push (`DOCTOR_DELAY_UPDATED`) to all waiting screens and patients.
+   - Automatically extends patient reporting deadlines and displays warning banners across the Patient Portal and Waiting Hall TV display.
 
 2. **Server-Side Background Expiry Worker:**
    - Autonomous server-authoritative asyncio background worker (30-second scan interval).
@@ -156,7 +172,7 @@ npm run dev -- --host 127.0.0.1 --port 5173
 cd backend
 .\venv\Scripts\pytest tests/ -v
 ```
-All 8 automated backend tests pass with 100% green status (including 30-client parallel concurrency test).
+All 11 automated backend tests pass with 100% green status (including 30-client parallel concurrency, Aadhaar booking, OTP login, traffic engine, and doctor delay broadcast tests).
 
 ```powershell
 cd frontend

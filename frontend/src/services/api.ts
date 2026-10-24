@@ -12,9 +12,12 @@ export interface Hospital {
   name: string;
   code: string;
   city: string;
+  area?: string;
   address: string;
   phone: string;
   emergency_contact: string;
+  latitude?: number;
+  longitude?: number;
   departments: {
     id: string;
     name: string;
@@ -51,6 +54,15 @@ export interface Booking {
   patient_phone: string;
   patient_age?: number;
   patient_gender?: string;
+  aadhar_number?: string;
+  patient_location?: string;
+  patient_latitude?: number;
+  patient_longitude?: number;
+  travel_mode?: string;
+  travel_distance_km?: number;
+  estimated_travel_min?: number;
+  traffic_condition?: string;
+  recommended_departure_time?: string;
   hospital_id: string;
   department_name: string;
   doctor_name: string;
@@ -63,6 +75,10 @@ export interface Booking {
   reporting_deadline: string;
   grace_period_deadline: string;
   estimated_consultation_time: string;
+  doctor_delay_min?: number;
+  delay_reason?: string;
+  adjusted_consultation_time?: string;
+  adjusted_reporting_deadline?: string;
   created_at: string;
 }
 
@@ -79,6 +95,8 @@ export interface QueueSession {
   total_completed: number;
   total_expired: number;
   total_waiting: number;
+  doctor_delay_min?: number;
+  delay_reason?: string;
   session_status: string;
   tokens: {
     booking_id: string;
@@ -88,6 +106,10 @@ export interface QueueSession {
     reporting_deadline: string;
     grace_period_deadline: string;
     estimated_wait_minutes: number;
+    doctor_delay_min?: number;
+    delay_reason?: string;
+    aadhar_number?: string;
+    patient_location?: string;
   }[];
 }
 
@@ -102,6 +124,30 @@ export interface BedStatus {
   occupancy_rate: number;
   status: 'AVAILABLE' | 'LOW' | 'CRITICAL';
   last_updated: string;
+}
+
+export interface TrafficEstimateResponse {
+  hospital_id: string;
+  hospital_name: string;
+  hospital_address: string;
+  hospital_lat: number;
+  hospital_lng: number;
+  origin_description: string;
+  origin_lat: number;
+  origin_lng: number;
+  travel_mode: string;
+  distance_km: number;
+  traffic_level: 'SMOOTH' | 'MODERATE' | 'HEAVY';
+  traffic_delay_min: number;
+  estimated_travel_min: number;
+  recommended_departure_time: string;
+  route_summary: string;
+}
+
+export interface TrichyLocality {
+  name: string;
+  latitude: number;
+  longitude: number;
 }
 
 export const fetchHospitals = async (): Promise<Hospital[]> => {
@@ -126,6 +172,15 @@ export const bookToken = async (payload: {
   patient_phone: string;
   patient_age?: number;
   patient_gender?: string;
+  aadhar_number?: string;
+  patient_location?: string;
+  patient_latitude?: number;
+  patient_longitude?: number;
+  travel_mode?: string;
+  travel_distance_km?: number;
+  estimated_travel_min?: number;
+  traffic_condition?: string;
+  recommended_departure_time?: string;
 }): Promise<Booking> => {
   const res = await api.post('/bookings', payload);
   return res.data;
@@ -141,6 +196,15 @@ export const bookWalkin = async (payload: {
   patient_phone: string;
   patient_age?: number;
   patient_gender?: string;
+  aadhar_number?: string;
+  patient_location?: string;
+  patient_latitude?: number;
+  patient_longitude?: number;
+  travel_mode?: string;
+  travel_distance_km?: number;
+  estimated_travel_min?: number;
+  traffic_condition?: string;
+  recommended_departure_time?: string;
 }): Promise<Booking> => {
   const res = await api.post('/bookings/walkin', payload);
   return res.data;
@@ -170,8 +234,45 @@ export const executeTokenAction = async (
   return res.data;
 };
 
+export const updateDoctorDelay = async (
+  scheduleId: string,
+  delayMinutes: number,
+  delayReason: string = 'OPD Consultation Delay',
+  doctorId?: string
+) => {
+  const res = await api.post('/queue/doctor-delay', {
+    schedule_id: scheduleId,
+    delay_minutes: delayMinutes,
+    delay_reason: delayReason,
+    doctor_id: doctorId,
+  });
+  return res.data;
+};
+
+export const getDoctorDelay = async (scheduleId: string) => {
+  const res = await api.get(`/queue/doctor-delay/${scheduleId}`);
+  return res.data;
+};
+
 export const fetchEmergencyBeds = async (hospitalId?: string): Promise<BedStatus[]> => {
   const res = await api.get('/beds', { params: { hospital_id: hospitalId } });
+  return res.data;
+};
+
+export const calculateTraffic = async (payload: {
+  hospital_id: string;
+  patient_latitude?: number;
+  patient_longitude?: number;
+  patient_locality?: string;
+  travel_mode?: string;
+  target_reporting_time?: string;
+}): Promise<TrafficEstimateResponse> => {
+  const res = await api.post('/traffic/calculate', payload);
+  return res.data;
+};
+
+export const fetchTrichyLocalities = async (): Promise<TrichyLocality[]> => {
+  const res = await api.get('/traffic/localities');
   return res.data;
 };
 
@@ -239,6 +340,17 @@ export const loginUser = async (phone: string, password: string): Promise<AuthRe
   return res.data;
 };
 
+export const sendLoginOtp = async (phone: string): Promise<{ success: boolean; message: string; otp_preview: string }> => {
+  const res = await api.post('/auth/otp/send', { phone });
+  return res.data;
+};
+
+export const verifyLoginOtp = async (phone: string, otp: string, name?: string): Promise<AuthResponse> => {
+  const res = await api.post('/auth/otp/verify', { phone, otp, name });
+  setStoredAuth(res.data.access_token, res.data.user);
+  return res.data;
+};
+
 export const registerUser = async (userData: {
   name: string;
   phone: string;
@@ -255,4 +367,3 @@ export const registerUser = async (userData: {
 };
 
 export default api;
-

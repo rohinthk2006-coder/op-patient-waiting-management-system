@@ -77,7 +77,8 @@ export function App() {
             data.event === 'TOKEN_EXPIRED' ||
             data.event === 'CONSULTATION_COMPLETED' ||
             data.event === 'NEW_TOKEN_BOOKED' ||
-            data.event === 'PATIENT_CHECKED_IN'
+            data.event === 'PATIENT_CHECKED_IN' ||
+            data.event === 'DOCTOR_DELAY_UPDATED'
           ) {
             loadData();
           }

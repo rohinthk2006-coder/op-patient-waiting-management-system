@@ -7,11 +7,29 @@ from app.schemas.booking import BookingCreate, BookingStatus, BookingType
 # In-memory store for development/testing when live MongoDB is not connected
 _mock_bookings: Dict[str, Dict[str, Any]] = {}
 _mock_token_counters: Dict[str, int] = {}
+_doctor_delays: Dict[str, Dict[str, Any]] = {}
 
 
 class BookingRepository:
     def __init__(self):
         self.db_mgr = db_manager
+
+    def set_doctor_delay(self, schedule_id: str, delay_minutes: int, delay_reason: Optional[str] = None, doctor_id: Optional[str] = None) -> Dict[str, Any]:
+        info = {
+            "schedule_id": schedule_id,
+            "doctor_id": doctor_id,
+            "delay_minutes": delay_minutes,
+            "delay_reason": delay_reason or "OPD Consultation Delay",
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        _doctor_delays[schedule_id] = info
+        return info
+
+    def get_doctor_delay(self, schedule_id: str) -> Dict[str, Any]:
+        return _doctor_delays.get(schedule_id, {"delay_minutes": 0, "delay_reason": None})
+
+    def get_all_doctor_delays(self) -> Dict[str, Dict[str, Any]]:
+        return _doctor_delays
 
     async def get_next_token_number(self, schedule_id: str, booking_date: str) -> int:
         session_key = f"{schedule_id}_{booking_date}"
@@ -42,6 +60,11 @@ class BookingRepository:
         token_num = await self.get_next_token_number(booking_data.schedule_id, booking_data.booking_date)
         
         now = datetime.now(timezone.utc)
+        # Check if doctor has an active delay
+        delay_info = self.get_doctor_delay(booking_data.schedule_id)
+        doctor_delay_min = delay_info.get("delay_minutes", 0)
+        delay_reason = delay_info.get("delay_reason")
+
         # Calculate estimated time: slot starts at 09:00 + (token - 1) * avg_min
         slot_base_minutes = 9 * 60 + (token_num - 1) * avg_consultation_min
         slot_hours = slot_base_minutes // 60
@@ -55,6 +78,15 @@ class BookingRepository:
         # Grace period deadline: 10 minutes past reporting deadline
         grace_deadline_mins = rep_deadline_mins + 10
         grace_deadline_str = f"{grace_deadline_mins // 60:02d}:{grace_deadline_mins % 60:02d}"
+
+        # Calculate adjusted times if there is an active doctor delay
+        adj_est_time_str = None
+        adj_rep_deadline_str = None
+        if doctor_delay_min > 0:
+            adj_slot_mins = slot_base_minutes + doctor_delay_min
+            adj_est_time_str = f"{adj_slot_mins // 60:02d}:{adj_slot_mins % 60:02d}"
+            adj_rep_mins = rep_deadline_mins + doctor_delay_min
+            adj_rep_deadline_str = f"{adj_rep_mins // 60:02d}:{adj_rep_mins % 60:02d}"
 
         booking_id = str(uuid.uuid4())
         ref_date = booking_data.booking_date.replace("-", "")
@@ -71,6 +103,15 @@ class BookingRepository:
             "patient_phone": booking_data.patient_phone,
             "patient_age": booking_data.patient_age,
             "patient_gender": booking_data.patient_gender,
+            "aadhar_number": booking_data.aadhar_number,
+            "patient_location": booking_data.patient_location,
+            "patient_latitude": booking_data.patient_latitude,
+            "patient_longitude": booking_data.patient_longitude,
+            "travel_mode": booking_data.travel_mode,
+            "travel_distance_km": booking_data.travel_distance_km,
+            "estimated_travel_min": booking_data.estimated_travel_min,
+            "traffic_condition": booking_data.traffic_condition,
+            "recommended_departure_time": booking_data.recommended_departure_time,
             "hospital_id": booking_data.hospital_id,
             "department_id": booking_data.department_id,
             "department_name": department_name,
@@ -85,6 +126,10 @@ class BookingRepository:
             "reporting_deadline": rep_deadline_str,
             "grace_period_deadline": grace_deadline_str,
             "estimated_consultation_time": est_time_str,
+            "doctor_delay_min": doctor_delay_min,
+            "delay_reason": delay_reason,
+            "adjusted_consultation_time": adj_est_time_str,
+            "adjusted_reporting_deadline": adj_rep_deadline_str,
             "check_in_time": now.isoformat() if initial_status == BookingStatus.CHECKED_IN else None,
             "consultation_start_time": None,
             "consultation_end_time": None,

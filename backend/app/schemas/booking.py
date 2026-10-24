@@ -28,6 +28,15 @@ class BookingCreate(BaseModel):
     patient_phone: str = Field(..., min_length=10)
     patient_age: Optional[int] = Field(None, ge=0, le=130)
     patient_gender: Optional[str] = "Unspecified"
+    aadhar_number: Optional[str] = Field(None, description="12-digit Aadhaar Card Number")
+    patient_location: Optional[str] = Field(None, description="Patient live location / locality")
+    patient_latitude: Optional[float] = None
+    patient_longitude: Optional[float] = None
+    travel_mode: Optional[str] = Field(None, description="BIKE, CAR, AUTO, BUS")
+    travel_distance_km: Optional[float] = None
+    estimated_travel_min: Optional[int] = None
+    traffic_condition: Optional[str] = None
+    recommended_departure_time: Optional[str] = None
 
 
 class WalkinBookingCreate(BookingCreate):
@@ -42,6 +51,15 @@ class BookingResponse(BaseModel):
     patient_phone: str
     patient_age: Optional[int] = None
     patient_gender: Optional[str] = None
+    aadhar_number: Optional[str] = None
+    patient_location: Optional[str] = None
+    patient_latitude: Optional[float] = None
+    patient_longitude: Optional[float] = None
+    travel_mode: Optional[str] = None
+    travel_distance_km: Optional[float] = None
+    estimated_travel_min: Optional[int] = None
+    traffic_condition: Optional[str] = None
+    recommended_departure_time: Optional[str] = None
     hospital_id: str
     department_id: str
     department_name: str
@@ -56,6 +74,10 @@ class BookingResponse(BaseModel):
     reporting_deadline: str
     grace_period_deadline: str
     estimated_consultation_time: str
+    doctor_delay_min: Optional[int] = 0
+    delay_reason: Optional[str] = None
+    adjusted_consultation_time: Optional[str] = None
+    adjusted_reporting_deadline: Optional[str] = None
     check_in_time: Optional[str] = None
     consultation_start_time: Optional[str] = None
     consultation_end_time: Optional[str] = None

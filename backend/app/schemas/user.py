@@ -45,3 +45,13 @@ class TokenPayload(BaseModel):
     sub: Optional[str] = None
     role: Optional[str] = None
     exp: Optional[int] = None
+
+
+class OTPRequest(BaseModel):
+    phone: str = Field(..., min_length=10, max_length=15)
+
+
+class OTPVerify(BaseModel):
+    phone: str = Field(..., min_length=10, max_length=15)
+    otp: str = Field(..., min_length=4, max_length=6)
+    name: Optional[str] = None

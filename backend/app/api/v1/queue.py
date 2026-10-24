@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Query
 from app.repositories.booking_repository import booking_repo
 from app.repositories.hospital_repository import hospital_repo
 from app.schemas.booking import BookingStatus
-from app.schemas.queue import QueueSessionResponse, QueueTokenItem, TokenActionRequest
+from app.schemas.queue import QueueSessionResponse, QueueTokenItem, TokenActionRequest, DoctorDelayUpdate
 from app.websocket.manager import ws_manager
 from app.services.prediction_service import prediction_service
 
@@ -39,17 +39,29 @@ async def get_queue_session(
             if len(next_up) == 3:
                 break
 
+    # Check active doctor delay
+    delay_info = booking_repo.get_doctor_delay(schedule_id)
+    doc_delay = delay_info.get("delay_minutes", 0)
+    delay_reason = delay_info.get("delay_reason")
+
     token_items: List[QueueTokenItem] = []
     for idx, b in enumerate(waiting_bookings):
-        pred = prediction_service.predict_wait_time(queue_position=idx + 1)
+        pred = prediction_service.predict_wait_time(
+            queue_position=idx + 1,
+            emergency_delay_min=doc_delay
+        )
         token_items.append(QueueTokenItem(
             booking_id=b.get("id") or b.get("_id"),
             token_number=b["token_number"],
             patient_name=b["patient_name"],
             status=b["status"],
-            reporting_deadline=b["reporting_deadline"],
+            reporting_deadline=b.get("adjusted_reporting_deadline") or b["reporting_deadline"],
             grace_period_deadline=b["grace_period_deadline"],
-            estimated_wait_minutes=pred["predicted_wait_minutes"]
+            estimated_wait_minutes=pred["predicted_wait_minutes"],
+            doctor_delay_min=doc_delay,
+            delay_reason=delay_reason,
+            aadhar_number=b.get("aadhar_number"),
+            patient_location=b.get("patient_location")
         ))
 
     return QueueSessionResponse(
@@ -57,7 +69,7 @@ async def get_queue_session(
         schedule_id=schedule_id,
         doctor_id="doc-anand-01",
         doctor_name="Dr. R. Anand",
-        department_name="Cardiology",
+        department_name="Cardiology & Cath Lab",
         opd_room="OPD Room 102",
         date=date,
         current_serving_token=current_token,
@@ -66,6 +78,8 @@ async def get_queue_session(
         total_completed=total_completed,
         total_expired=total_expired,
         total_waiting=total_waiting,
+        doctor_delay_min=doc_delay,
+        delay_reason=delay_reason,
         session_status="RUNNING",
         tokens=token_items
     )
@@ -144,3 +158,52 @@ async def perform_token_action(schedule_id: str, action_req: TokenActionRequest)
         return {"status": "SUCCESS", "message": f"Demonstration: Token #{action_req.token_number} expired automatically."}
 
     raise HTTPException(status_code=400, detail=f"Unsupported action: {action}")
+
+
+@router.post("/doctor-delay")
+async def update_doctor_delay(update: DoctorDelayUpdate):
+    delay_info = booking_repo.set_doctor_delay(
+        schedule_id=update.schedule_id,
+        delay_minutes=update.delay_minutes,
+        delay_reason=update.delay_reason,
+        doctor_id=update.doctor_id
+    )
+
+    # Dispatched SMS / in-app notification to all waiting patients booked for this schedule
+    from app.services.notification_service import notification_service
+    date_today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    bookings = await booking_repo.get_session_bookings(update.schedule_id, date_today)
+    for b in bookings:
+        if b["status"] in [BookingStatus.BOOKED.value, BookingStatus.CHECKED_IN.value]:
+            delay_text = (
+                f"⚠️ Dr. {b.get('doctor_name', 'your doctor')} has reported a {update.delay_minutes}-min delay "
+                f"({update.delay_reason}). Your consultation and reporting time have been adjusted accordingly."
+            )
+            await notification_service.send_notification(
+                recipient_phone=b["patient_phone"],
+                title="⚠️ Doctor OPD Delay Notice",
+                message=delay_text,
+                category="DOCTOR_DELAY_UPDATE",
+                booking_ref=b["booking_ref"]
+            )
+
+    # Broadcast real-time WebSocket event to all waiting halls and patient portals
+    await ws_manager.broadcast_all({
+        "event": "DOCTOR_DELAY_UPDATED",
+        "schedule_id": update.schedule_id,
+        "delay_minutes": update.delay_minutes,
+        "delay_reason": update.delay_reason,
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+
+    return {
+        "status": "SUCCESS",
+        "message": f"Doctor delay of {update.delay_minutes} minutes updated and broadcast to all patients.",
+        "data": delay_info
+    }
+
+
+@router.get("/doctor-delay/{schedule_id}")
+async def get_doctor_delay_status(schedule_id: str):
+    return booking_repo.get_doctor_delay(schedule_id)
+

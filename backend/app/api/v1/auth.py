@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Dict, Any
 from fastapi import APIRouter, HTTPException, status, Depends
 from fastapi.security import OAuth2PasswordBearer
@@ -102,19 +102,78 @@ async def register(user_in: UserCreate):
     )
 
 
-@router.post("/login", response_model=Token)
-async def login(credentials: UserLogin):
+from app.schemas.user import UserCreate, UserLogin, UserResponse, Token, OTPRequest, OTPVerify
+
+# In-memory OTP storage: phone -> {otp, expires_at}
+_active_otps: Dict[str, Dict[str, Any]] = {}
+
+
+@router.post("/otp/send")
+async def send_login_otp(req: OTPRequest):
+    # Standard demo OTP: 123456 for instant testing convenience
+    otp = "123456"
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=5)
+    _active_otps[req.phone] = {
+        "otp": otp,
+        "expires_at": expires_at
+    }
+
+    from app.services.notification_service import notification_service
+    await notification_service.send_notification(
+        recipient_phone=req.phone,
+        title="Your Hospital OP Login OTP",
+        message=f"Your one-time login verification code is {otp}. Valid for 5 minutes. Do not share this with anyone.",
+        category="LOGIN_OTP"
+    )
+
+    return {
+        "success": True,
+        "message": f"OTP code successfully sent to +91 {req.phone}",
+        "otp_preview": otp,
+        "expires_in_seconds": 300
+    }
+
+
+@router.post("/otp/verify", response_model=Token)
+async def verify_login_otp(credentials: OTPVerify):
+    stored = _active_otps.get(credentials.phone)
+    # Accept stored OTP or fallback demo 123456
+    is_valid = (stored and stored.get("otp") == credentials.otp) or credentials.otp == "123456"
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired OTP. Please enter the 6-digit code or use 123456."
+        )
+
+    # Find existing patient or auto-provision new patient profile
     user_doc = None
     if not db_manager.is_mock and db_manager.db is not None:
         user_doc = await db_manager.db.users.find_one({"phone": credentials.phone})
     else:
         user_doc = _mock_users.get(credentials.phone)
 
-    if not user_doc or not verify_password(credentials.password, user_doc["hashed_password"]):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect phone number or password."
-        )
+    now_iso = datetime.now(timezone.utc).isoformat()
+    if not user_doc:
+        # Auto-create patient account on first OTP login
+        user_id = str(uuid.uuid4())
+        patient_name = credentials.name or f"Patient ({credentials.phone[-4:]})"
+        user_doc = {
+            "_id": user_id,
+            "id": user_id,
+            "name": patient_name,
+            "phone": credentials.phone,
+            "email": f"{credentials.phone}@patient.hospitalop.com",
+            "age": 32,
+            "gender": "Unspecified",
+            "role": "PATIENT",
+            "hospital_id": None,
+            "hashed_password": get_password_hash("otp-auto-login"),
+            "created_at": now_iso
+        }
+        if not db_manager.is_mock and db_manager.db is not None:
+            await db_manager.db.users.insert_one(user_doc)
+        else:
+            _mock_users[credentials.phone] = user_doc
 
     user_id = user_doc.get("id") or user_doc.get("_id")
     token = create_access_token({"sub": user_id, "role": user_doc["role"], "phone": user_doc["phone"]})

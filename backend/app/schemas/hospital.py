@@ -17,6 +17,9 @@ class HospitalBase(BaseModel):
     address: str
     phone: str
     emergency_contact: str
+    latitude: Optional[float] = 10.8125
+    longitude: Optional[float] = 78.6856
+    area: Optional[str] = "Tiruchirappalli"
 
 
 class HospitalCreate(HospitalBase):

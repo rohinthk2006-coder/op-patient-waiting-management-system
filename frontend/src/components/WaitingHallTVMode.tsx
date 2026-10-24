@@ -35,6 +35,16 @@ export const WaitingHallTVMode: React.FC<WaitingHallTVModeProps> = ({ session })
         </button>
       </div>
 
+      {/* Doctor Delay Notice on TV Screen */}
+      {session?.doctor_delay_min && session.doctor_delay_min > 0 ? (
+        <div className="mt-3 p-3 rounded-xl bg-amber-500 text-white font-bold text-center flex items-center justify-center gap-2 shadow-md animate-pulse">
+          <span className="text-sm">⚠️ DOCTOR DELAY NOTICE:</span>
+          <span className="text-sm font-normal">
+            Dr. {session.doctor_name} is running {session.doctor_delay_min} minutes behind schedule ({session.delay_reason || 'OPD Emergency'}). Patient deadlines are adjusted.
+          </span>
+        </div>
+      ) : null}
+
       {/* Main Big Display Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 my-5 items-center">
         {/* Giant Active Serving Token */}

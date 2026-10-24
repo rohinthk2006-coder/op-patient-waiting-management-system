@@ -10,6 +10,10 @@ class QueueTokenItem(BaseModel):
     reporting_deadline: str
     grace_period_deadline: str
     estimated_wait_minutes: int
+    doctor_delay_min: int = 0
+    delay_reason: Optional[str] = None
+    aadhar_number: Optional[str] = None
+    patient_location: Optional[str] = None
 
 
 class QueueSessionResponse(BaseModel):
@@ -26,6 +30,8 @@ class QueueSessionResponse(BaseModel):
     total_completed: int = 0
     total_expired: int = 0
     total_waiting: int = 0
+    doctor_delay_min: int = 0
+    delay_reason: Optional[str] = None
     session_status: str = "RUNNING"  # SCHEDULED, RUNNING, PAUSED, CONCLUDED
     tokens: List[QueueTokenItem] = []
 
@@ -41,3 +47,10 @@ class TokenActionRequest(BaseModel):
     token_number: int
     date: Optional[str] = None
     notes: Optional[str] = None
+
+
+class DoctorDelayUpdate(BaseModel):
+    schedule_id: str
+    doctor_id: Optional[str] = None
+    delay_minutes: int
+    delay_reason: Optional[str] = "Emergency Ward Consultation"
